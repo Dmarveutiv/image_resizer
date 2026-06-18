@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batman's Image Resizer</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
             --bg: #080810;
@@ -33,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Background grid */
         body::before {
             content: '';
             position: fixed;
@@ -46,7 +46,6 @@
             z-index: 0;
         }
 
-        /* Glow blobs */
         .blob {
             position: fixed;
             border-radius: 50%;
@@ -66,7 +65,6 @@
             padding: 60px 24px 80px;
         }
 
-        /* Header */
         .header {
             text-align: center;
             margin-bottom: 56px;
@@ -110,7 +108,6 @@
             line-height: 1.6;
         }
 
-        /* Steps indicator */
         .steps {
             display: flex;
             align-items: center;
@@ -142,7 +139,6 @@
         .step.done .step-num { border-color: var(--accent); background: var(--accent); color: white; }
         .step-line { width: 40px; height: 1px; background: var(--border); margin: 0 6px; }
 
-        /* Card */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -178,7 +174,6 @@
             color: var(--accent);
         }
 
-        /* Upload zone */
         .upload-zone {
             border: 1.5px dashed var(--border-hover);
             border-radius: var(--radius-sm);
@@ -224,7 +219,6 @@
 
         #fileInput { display: none; }
 
-        /* Preview */
         .preview-wrap {
             display: none;
             background: var(--surface2);
@@ -269,7 +263,6 @@
         }
         .preview-remove:hover { border-color: var(--accent2); color: var(--accent2); }
 
-        /* Platform grid */
         .platform-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -300,7 +293,27 @@
             background: linear-gradient(135deg, #7c5cfc18, #fc5c7d10);
             box-shadow: 0 0 20px var(--accent-glow);
         }
-        .platform-emoji { font-size: 20px; line-height: 1; }
+        .platform-icon {
+            font-size: 22px;
+            line-height: 1;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .platform-btn:hover .platform-icon { color: var(--text); }
+        .platform-btn.active .platform-icon { color: var(--accent); }
+
+        /* Per-platform brand colors on active */
+        .platform-btn.active[data-platform="instagram"] .platform-icon { color: #e1306c; }
+        .platform-btn.active[data-platform="twitter"] .platform-icon { color: #fff; }
+        .platform-btn.active[data-platform="facebook"] .platform-icon { color: #1877f2; }
+        .platform-btn.active[data-platform="linkedin"] .platform-icon { color: #0a66c2; }
+        .platform-btn.active[data-platform="youtube"] .platform-icon { color: #ff0000; }
+        .platform-btn.active[data-platform="tiktok"] .platform-icon { color: #69c9d0; }
+        .platform-btn.active[data-platform="pinterest"] .platform-icon { color: #e60023; }
+        .platform-btn.active[data-platform="snapchat"] .platform-icon { color: #fffc00; }
+        .platform-btn.active[data-platform="whatsapp"] .platform-icon { color: #25d366; }
+        .platform-btn.active[data-platform="telegram"] .platform-icon { color: #2aabee; }
+
         .platform-name {
             font-family: 'Syne', sans-serif;
             font-size: 10px;
@@ -310,7 +323,6 @@
         }
         .platform-btn.active .platform-name { color: var(--text); }
 
-        /* Use case grid */
         .use-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -351,7 +363,6 @@
         }
         .use-btn.active .use-dim { color: #b09eff; }
 
-        /* Size callout */
         .size-callout {
             display: none;
             background: linear-gradient(135deg, #7c5cfc15, #fc5c7d10);
@@ -371,7 +382,6 @@
         }
         .size-callout-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-        /* Convert button */
         .convert-btn {
             width: 100%;
             padding: 16px;
@@ -415,7 +425,6 @@
             box-shadow: none;
         }
 
-        /* Result */
         .result-card {
             display: none;
             background: var(--surface);
@@ -587,55 +596,55 @@
 <script>
     // ─── Platform data ───────────────────────────────────────
     const platforms = {
-        instagram: { name: "Instagram", emoji: "📸", uses: {
+        instagram: { name: "Instagram", icon: "fa-brands fa-instagram", uses: {
             "Feed post (square)": { w: 1080, h: 1080, note: "Classic square format" },
             "Feed post (portrait)": { w: 1080, h: 1350, note: "Best for engagement" },
             "Feed post (landscape)": { w: 1080, h: 566, note: "Widescreen crop" },
             "Story / Reel": { w: 1080, h: 1920, note: "Full screen vertical" },
             "Profile picture": { w: 320, h: 320, note: "Circular display" },
         }},
-        twitter: { name: "Twitter / X", emoji: "𝕏", uses: {
+        twitter: { name: "Twitter / X", icon: "fa-brands fa-x-twitter", uses: {
             "Post image": { w: 1600, h: 900, note: "Landscape in feed" },
             "Profile picture": { w: 400, h: 400, note: "Circular display" },
             "Header / banner": { w: 1500, h: 500, note: "Profile cover" },
         }},
-        facebook: { name: "Facebook", emoji: "👥", uses: {
+        facebook: { name: "Facebook", icon: "fa-brands fa-facebook", uses: {
             "Feed post": { w: 1200, h: 630, note: "Standard feed image" },
             "Cover photo": { w: 851, h: 315, note: "Page/profile banner" },
             "Profile picture": { w: 180, h: 180, note: "Circular display" },
             "Story": { w: 1080, h: 1920, note: "Full screen vertical" },
             "Event cover": { w: 1920, h: 1005, note: "Wide event banner" },
         }},
-        linkedin: { name: "LinkedIn", emoji: "💼", uses: {
+        linkedin: { name: "LinkedIn", icon: "fa-brands fa-linkedin", uses: {
             "Post image": { w: 1200, h: 627, note: "Standard feed image" },
             "Profile picture": { w: 400, h: 400, note: "Square display" },
             "Cover photo": { w: 1584, h: 396, note: "Profile banner" },
             "Company logo": { w: 300, h: 300, note: "Square logo" },
         }},
-        youtube: { name: "YouTube", emoji: "▶️", uses: {
+        youtube: { name: "YouTube", icon: "fa-brands fa-youtube", uses: {
             "Thumbnail": { w: 1280, h: 720, note: "16:9 video thumbnail" },
             "Channel art": { w: 2560, h: 1440, note: "Full channel banner" },
             "Profile picture": { w: 800, h: 800, note: "Circular display" },
         }},
-        tiktok: { name: "TikTok", emoji: "🎵", uses: {
+        tiktok: { name: "TikTok", icon: "fa-brands fa-tiktok", uses: {
             "Video cover": { w: 1080, h: 1920, note: "Vertical 9:16" },
             "Profile picture": { w: 200, h: 200, note: "Circular display" },
         }},
-        pinterest: { name: "Pinterest", emoji: "📌", uses: {
+        pinterest: { name: "Pinterest", icon: "fa-brands fa-pinterest", uses: {
             "Standard pin": { w: 1000, h: 1500, note: "2:3 ratio" },
             "Square pin": { w: 1000, h: 1000, note: "Square format" },
             "Profile picture": { w: 165, h: 165, note: "Circular display" },
         }},
-        snapchat: { name: "Snapchat", emoji: "👻", uses: {
+        snapchat: { name: "Snapchat", icon: "fa-brands fa-snapchat", uses: {
             "Snap / Story": { w: 1080, h: 1920, note: "Full screen vertical" },
             "Ad image": { w: 1080, h: 1920, note: "9:16 vertical" },
         }},
-        whatsapp: { name: "WhatsApp", emoji: "💬", uses: {
+        whatsapp: { name: "WhatsApp", icon: "fa-brands fa-whatsapp", uses: {
             "Status": { w: 1080, h: 1920, note: "Full screen vertical" },
             "Profile picture": { w: 500, h: 500, note: "Square display" },
             "Shared image": { w: 1600, h: 900, note: "Landscape format" },
         }},
-        telegram: { name: "Telegram", emoji: "✈️", uses: {
+        telegram: { name: "Telegram", icon: "fa-brands fa-telegram", uses: {
             "Profile picture": { w: 512, h: 512, note: "Square display" },
             "Channel banner": { w: 1280, h: 720, note: "16:9 banner" },
             "Shared image": { w: 1280, h: 720, note: "Standard share size" },
@@ -724,7 +733,8 @@
         Object.entries(platforms).forEach(([key, p]) => {
             const btn = document.createElement('button');
             btn.className = 'platform-btn' + (selectedPlatform === key ? ' active' : '');
-            btn.innerHTML = `<span class="platform-emoji">${p.emoji}</span><span class="platform-name">${p.name}</span>`;
+            btn.setAttribute('data-platform', key);
+            btn.innerHTML = `<i class="${p.icon} platform-icon"></i><span class="platform-name">${p.name}</span>`;
             btn.addEventListener('click', () => {
                 selectedPlatform = key;
                 selectedUse = null;
