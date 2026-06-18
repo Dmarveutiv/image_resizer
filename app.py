@@ -39,7 +39,13 @@ Sizes = {
     'Square Pin' : (1000, 1000),
     'Idea Pin': (1080, 1920),
     'Board Cover Image': (222, 150)
-    }
+    },
+    'Linkedin':{
+        'Profile photo' : (400, 400),
+        'Profile banner' : (1584, 396),
+        'Featured Section': (1200, 627)
+    },
+    
 }
 @app.route("/")
 def home():
