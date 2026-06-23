@@ -8,10 +8,10 @@ Setup
 pip install flask pillow
 
 make sure your folder looks like this:
-  projects/
-  |-app.py
-  '---templates/
-        '---inddex.html
+  project/
+├── app.py
+└── templates/
+    └── index.html
 
 run
 python app.py
