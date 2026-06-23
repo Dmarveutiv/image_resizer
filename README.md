@@ -1,6 +1,25 @@
-# image_resizer
-A Flask-based image resizer web app.
-What it does is that it resizes images based on user's preferred social media platform use case.
-For example, you find a 1090 * 1920 sized image online, that you want to use as your 
-whatsapp profile picture(500 * 500 is the default size for whatsapp pfp) this tool will help you resize that image, and still keep the images aspect ratio.
-It supports multiple social media platforms, and their different use cases.
+Batman's Image Resizer - How it works
+A web app that resizes an uploaded image to the correct dimensions for a chosen social media platform and use case (e.g. Instagram Story, Linkedin banner, Whatsapp Profile Picture, X bannner). Built with Flask(Python) on the backend and vanilla JavaScript on the frontend
+
+All image processing happens on the server. the browser job is only to collect input file, and display the result.
+
+Setup
+
+pip install flask pillow
+
+make sure your folder looks like this:
+  projects/
+  |-app.py
+  '---templates/
+        '---inddex.html
+
+run
+python app.py
+
+open your browser to the port indiciated in cli
+
+use
+1. Upload an image
+2. Pick a platform
+3. Pick a use case (e.g. "profile Picture"
+4. Click Resize
