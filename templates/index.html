@@ -309,7 +309,7 @@
 
         .platform-btn.active[data-platform="instagram"] .platform-icon { color: #e1306c; }
         .platform-btn.active[data-platform="twitter"] .platform-icon { color: #aaa; }
-        .platform-btn.active[data-platform="facebook"] .platform-icon { color: #4a90d9; }
+        .platform-btn.active[data-platform="Facebook"] .platform-icon { color: #4a90d9; }
         .platform-btn.active[data-platform="linkedin"] .platform-icon { color: #5ca0c8; }
         .platform-btn.active[data-platform="youtube"] .platform-icon { color: #cc3333; }
         .platform-btn.active[data-platform="tiktok"] .platform-icon { color: #69c9d0; }
@@ -501,8 +501,6 @@
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-        canvas { display: none; }
-
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
@@ -597,10 +595,10 @@
         <span>user@imgresizer:~$</span> awaiting input<span class="cursor"></span>
     </div>
 
-    <canvas id="canvas"></canvas>
 </div>
 
 <script>
+    // NOTE: keys here must match the Sizes dict keys in app.py exactly (case-sensitive).
     const platforms = {
         instagram: { name: "Instagram", icon: "fa-brands fa-instagram", uses: {
             "Feed post (square)": { w: 1080, h: 1080, note: "Classic square format" },
@@ -677,7 +675,6 @@
     const resultImg = document.getElementById('resultImg');
     const resultLabel = document.getElementById('resultLabel');
     const downloadBtn = document.getElementById('downloadBtn');
-    const canvas = document.getElementById('canvas');
 
     function setStep(n) {
         for (let i = 1; i <= 4; i++) {
@@ -769,39 +766,54 @@
         });
     }
 
-    convertBtn.addEventListener('click', () => {
+    // Resizing now happens server-side via Flask + Pillow in app.py.
+    // This requires the Flask server to be running and reachable at /resize.
+    convertBtn.addEventListener('click', async () => {
         if (!uploadedFile || !selectedPlatform || !selectedUse) return;
+
         const dim = platforms[selectedPlatform].uses[selectedUse];
-        const img = new Image();
-        img.onload = () => {
-            canvas.width = dim.w;
-            canvas.height = dim.h;
-            const ctx = canvas.getContext('2d');
-            const srcR = img.naturalWidth / img.naturalHeight;
-            const dstR = dim.w / dim.h;
-            let sx, sy, sw, sh;
-            if (srcR > dstR) {
-                sh = img.naturalHeight; sw = sh * dstR;
-                sx = (img.naturalWidth - sw) / 2; sy = 0;
-            } else {
-                sw = img.naturalWidth; sh = sw / dstR;
-                sx = 0; sy = (img.naturalHeight - sh) / 2;
+        const originalLabel = convertBtn.textContent;
+        convertBtn.disabled = true;
+        convertBtn.textContent = 'resizing...';
+
+        const formData = new FormData();
+        formData.append('image', uploadedFile);
+        formData.append('platform', selectedPlatform);
+        formData.append('use_case', selectedUse);
+
+        try {
+            const response = await fetch('/resize', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}`);
             }
-            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dim.w, dim.h);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-            resultImg.src = dataUrl;
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            resultImg.src = url;
             resultLabel.textContent = `${platforms[selectedPlatform].name} · ${selectedUse} · ${dim.w}×${dim.h}`;
             resultCard.style.display = 'block';
+
             downloadBtn.onclick = () => {
                 const a = document.createElement('a');
-                a.href = dataUrl;
+                a.href = url;
                 const base = uploadedFile.name.replace(/\.[^.]+$/, '');
                 a.download = `${base}_${selectedPlatform}_${selectedUse.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.jpg`;
                 a.click();
             };
+
             resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        };
-        img.src = URL.createObjectURL(uploadedFile);
+        } catch (err) {
+            console.error(err);
+            alert('Resize failed — make sure the Flask server (app.py) is running.');
+        } finally {
+            convertBtn.disabled = false;
+            convertBtn.textContent = originalLabel;
+        }
     });
 </script>
 </body>
