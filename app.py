@@ -14,8 +14,7 @@ Sizes = {
         'Status': (1080, 1920),
         'Profile picture': (500, 500),
         'Shared image': (1600, 900),
-    },
-    'youtube': {
+
         'Thumbnail': (1280, 720),
         'Channel art': (2560, 1440),
         'Profile picture': (800, 500),
