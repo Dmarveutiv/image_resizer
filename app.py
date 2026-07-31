@@ -15,10 +15,6 @@ Sizes = {
         'Status': (1080, 1920),
         'Profile picture': (500, 500),
         'Shared image': (1600, 900),
-
-        'Thumbnail': (1280, 720),
-        'Channel art': (2560, 1440),
-        'Profile picture': (800, 500),
     },
     'Facebook': {
         'Feed post': (1200, 630),
@@ -80,11 +76,17 @@ def resize():
     img = Image.open(file)
     img = img.convert("RGB")
 
-    # crop-to-fill instead of thumbnail, so output matches exact target dims
-    img = ImageOps.fit(img, (width, height), Image.LANCZOS)
+    # Resize while preserving aspect ratio (no crop)
+    img.thumbnail((width, height), Image.LANCZOS)
+
+    # Create exact-size canvas and paste centered (letterbox)
+    final = Image.new("RGB", (width, height), (255, 255, 255))  # White background
+    offset_x = (width - img.width) // 2
+    offset_y = (height - img.height) // 2
+    final.paste(img, (offset_x, offset_y))
 
     output = io.BytesIO()
-    img.save(output, format="JPEG", quality=92)
+    final.save(output, format="JPEG", quality=92)
     output.seek(0)
 
     filename = f"{platform}_{use_case.replace(' ', '_').replace('/', '-')}.jpg"
