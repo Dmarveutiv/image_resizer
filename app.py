@@ -55,6 +55,11 @@ Sizes = {
         'Channel banner': (1280, 720),
         'Shared image': (1280, 720),
     },
+    'youtube': {
+        'Thumbnail': (1280, 720),
+        'Channel art': (2560,1440),
+        'Profile Picture': (800,500),
+    },
 }
 
 @app.route("/")
