@@ -62,6 +62,7 @@ Sizes = {
 def home():
     return render_template('index.html', platforms=Sizes)
 
+
 @app.route("/resize", methods=["POST"])
 def resize():
     file = request.files["image"]
@@ -76,23 +77,18 @@ def resize():
     img = Image.open(file)
     img = img.convert("RGB")
 
-    # Resize while preserving aspect ratio (no crop)
-    img.thumbnail((width, height), Image.LANCZOS)
-
-    # Create exact-size canvas and paste centered (letterbox)
-    final = Image.new("RGB", (width, height), (255, 255, 255))  # White background
-    offset_x = (width - img.width) // 2
-    offset_y = (height - img.height) // 2
-    final.paste(img, (offset_x, offset_y))
+    # crop-to-fill instead of thumbnail, so output matches exact target dims
+    img = ImageOps.fit(img, (width, height), Image.LANCZOS)
 
     output = io.BytesIO()
-    final.save(output, format="JPEG", quality=92)
+    img.save(output, format="JPEG", quality=92)
     output.seek(0)
 
     filename = f"{platform}_{use_case.replace(' ', '_').replace('/', '-')}.jpg"
     return send_file(output, mimetype="image/jpeg",
-                      as_attachment=True,
-                      download_name=filename)
+                     as_attachment=True,
+                     download_name=filename)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
