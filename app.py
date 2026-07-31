@@ -58,7 +58,7 @@ Sizes = {
     'youtube': {
         'Thumbnail': (1280, 720),
         'Channel art': (2560,1440),
-        'Profile Picture': (800,500),
+        'Profile Image': (800,500),
     },
 }
 
