@@ -137,6 +137,7 @@
             border: 1px solid var(--border);
             padding: 12px 20px;
             border-radius: var(--radius);
+            overflow-x: auto;
         }
         .step {
             display: flex;
@@ -146,6 +147,7 @@
             color: var(--text-dim);
             transition: color 0.3s;
             letter-spacing: 0.08em;
+            white-space: nowrap;
         }
         .step.active { color: var(--text-muted); }
         .step.done { color: var(--accent); }
@@ -159,7 +161,7 @@
         }
         .step.active .step-num { border-color: var(--text-muted); color: var(--text-muted); }
         .step.done .step-num { border-color: var(--accent); background: var(--accent); color: #050a05; }
-        .step-line { width: 32px; height: 1px; background: var(--border); margin: 0 6px; }
+        .step-line { width: 32px; height: 1px; background: var(--border); margin: 0 6px; flex-shrink: 0; }
 
         .card {
             background: var(--surface);
@@ -377,6 +379,55 @@
         .size-callout-dim::before { content: '> '; color: var(--text-dim); }
         .size-callout-note { font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.04em; }
 
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 480px) { .mode-grid { grid-template-columns: 1fr; } }
+
+        .mode-option-wrap {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            transition: all 0.2s;
+        }
+        .mode-option-wrap:hover { border-color: var(--border-hover); }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-bottom: 6px;
+        }
+
+        .mode-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .mode-option-label {
+            font-size: 13px;
+            color: var(--accent);
+            cursor: pointer;
+            letter-spacing: 0.04em;
+        }
+
+        .mode-option-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 26px;
+            letter-spacing: 0.03em;
+        }
+
+        input[type="radio"]:checked ~ .mode-option-desc {
+            color: var(--accent2);
+        }
+
         .convert-btn {
             width: 100%;
             padding: 15px;
@@ -510,6 +561,7 @@
         .card:nth-child(2) { animation-delay: 0.1s; }
         .card:nth-child(3) { animation-delay: 0.15s; }
         .card:nth-child(4) { animation-delay: 0.2s; }
+        .card:nth-child(5) { animation-delay: 0.25s; }
     </style>
 </head>
 <body>
@@ -529,7 +581,9 @@
         <div class="step-line"></div>
         <div class="step" id="s3"><span class="step-num">3</span> Use Case</div>
         <div class="step-line"></div>
-        <div class="step" id="s4"><span class="step-num">4</span> Export</div>
+        <div class="step" id="s4"><span class="step-num">4</span> Mode</div>
+        <div class="step-line"></div>
+        <div class="step" id="s5"><span class="step-num">5</span> Export</div>
     </div>
 
     <!-- Step 1: Upload -->
@@ -572,7 +626,28 @@
         </div>
     </div>
 
-    <!-- Step 4: Convert -->
+    <!-- Step 4: Resize Mode -->
+    <div class="card" id="modeCard" style="animation-delay:0.25s; display:none">
+        <div class="card-label"><span>4</span> Resize Mode</div>
+        <div class="mode-grid" id="modeGrid">
+            <div class="mode-option-wrap">
+                <label class="mode-option">
+                    <input type="radio" name="mode" value="pad" checked>
+                    <span class="mode-option-label">Pad</span>
+                </label>
+                <div class="mode-option-desc">Keep full image + padding</div>
+            </div>
+            <div class="mode-option-wrap">
+                <label class="mode-option">
+                    <input type="radio" name="mode" value="crop">
+                    <span class="mode-option-label">Crop</span>
+                </label>
+                <div class="mode-option-desc">Scale & crop to fill</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Convert -->
     <button class="convert-btn" id="convertBtn" disabled>
         resize --output ./download
     </button>
@@ -670,6 +745,7 @@
     const sizeCallout = document.getElementById('sizeCallout');
     const calloutDim = document.getElementById('calloutDim');
     const calloutNote = document.getElementById('calloutNote');
+    const modeCard = document.getElementById('modeCard');
     const convertBtn = document.getElementById('convertBtn');
     const resultCard = document.getElementById('resultCard');
     const resultImg = document.getElementById('resultImg');
@@ -677,7 +753,7 @@
     const downloadBtn = document.getElementById('downloadBtn');
 
     function setStep(n) {
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 5; i++) {
             const el = document.getElementById('s' + i);
             el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
         }
@@ -699,6 +775,7 @@
         previewWrap.style.display = 'none';
         platformCard.style.display = 'none';
         useCard.style.display = 'none';
+        modeCard.style.display = 'none';
         resultCard.style.display = 'none';
         convertBtn.disabled = true;
         selectedPlatform = null;
@@ -736,6 +813,7 @@
                 buildPlatformGrid();
                 buildUseGrid();
                 useCard.style.display = 'block';
+                modeCard.style.display = 'none';
                 sizeCallout.style.display = 'none';
                 convertBtn.disabled = true;
                 setStep(3);
@@ -758,6 +836,7 @@
                 calloutDim.textContent = `${dim.w} × ${dim.h}px`;
                 calloutNote.textContent = dim.note;
                 sizeCallout.style.display = 'flex';
+                modeCard.style.display = 'block';
                 convertBtn.disabled = false;
                 setStep(4);
                 resultCard.style.display = 'none';
@@ -766,12 +845,11 @@
         });
     }
 
-    // Resizing now happens server-side via Flask + Pillow in app.py.
-    // This requires the Flask server to be running and reachable at /resize.
     convertBtn.addEventListener('click', async () => {
         if (!uploadedFile || !selectedPlatform || !selectedUse) return;
 
         const dim = platforms[selectedPlatform].uses[selectedUse];
+        const selectedMode = document.querySelector('input[name="mode"]:checked').value;
         const originalLabel = convertBtn.textContent;
         convertBtn.disabled = true;
         convertBtn.textContent = 'resizing...';
@@ -780,6 +858,7 @@
         formData.append('image', uploadedFile);
         formData.append('platform', selectedPlatform);
         formData.append('use_case', selectedUse);
+        formData.append('mode', selectedMode);
 
         try {
             const response = await fetch('/resize', {
@@ -795,18 +874,21 @@
             const url = URL.createObjectURL(blob);
 
             resultImg.src = url;
-            resultLabel.textContent = `${platforms[selectedPlatform].name} · ${selectedUse} · ${dim.w}×${dim.h}`;
+            const modeLabel = selectedMode === 'crop' ? '(cropped)' : '(padded)';
+            resultLabel.textContent = `${platforms[selectedPlatform].name} · ${selectedUse} · ${dim.w}×${dim.h} ${modeLabel}`;
             resultCard.style.display = 'block';
 
             downloadBtn.onclick = () => {
                 const a = document.createElement('a');
                 a.href = url;
                 const base = uploadedFile.name.replace(/\.[^.]+$/, '');
-                a.download = `${base}_${selectedPlatform}_${selectedUse.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.jpg`;
+                const ext = blob.type.includes('png') ? 'png' : 'jpg';
+                a.download = `${base}_${selectedPlatform}_${selectedUse.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.${ext}`;
                 a.click();
             };
 
             resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setStep(5);
         } catch (err) {
             console.error(err);
             alert('Resize failed — make sure the Flask server (app.py) is running.');
